@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>nx제품 임시라이선스 관리 페이지</h1>
+    <input type="text" id="customer" placeholder="고객사"><br/>
+    <input type="text" id="issuer" placeholder="발급자"><br/>
+    <textarea name="area" id="license" cols="100" rows="10" placeholder="라이선스"></textarea><br/>
+    <button id="add" style="width: 100px;height: 50px;">등록</button>
+    <div id="licenseList" >
+        <table id="tb1" border="1" class="detailTbltd">
+            <colgroup>
+              <col style="width: 20%">
+              <col style="width: 60%">
+
+            </colgroup>
+            <tr>
+                <th>아이디</th>
+                <td>1</td>
+              </tr>
+            <tr>
+              <th>고객사</th>
+              <td>신한은행</td>
+            </tr>
+            <tr>
+              <th>발급자</th>
+              <td>임바울</td>
+            </tr>
+            <tr>
+                <th>만료일</th>
+                <td>23년8월15일</td>
+            </tr>
+            <tr>
+                <th>라이선스</th>
+                <td>eyJ2ZXJzaW9uIjoiMS4wIiwiaXNzdWVfZGF0ZSI6IjIwMjMwODExMTYyMTI5IiwicHJvdG9jb2xfbmFtZSI6InRvdWNoZW5leCIsInV1aWQiOiJiNGQ3MzI4MDBmNjQ0MjY2ODkyODdhZmYzZGQ0NjA4ZSIsImxpY2Vuc2UiOiJFalwvU2V0Q2ZTT1BGOHE3NXk5bEVqckVXUzlRZHF5Vk8rb3Q5SnFUSjJEdGtPNE8ySkZRUVJvbFlTazFwTXFqempyZjc3Q1I2RnJCcWV1Q3Zid3F5eGc9PSJ9</td>
+            </tr>
+        </table>
+        <hr>
+    </div>
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+    
+        })
+
+        let addInfo = document.getElementById('add');
+        addInfo.addEventListener('click', function(){
+            test('eyJ2ZXJzaW9uIjoiMi4wIiwiaXNzdWVfZGF0ZSI6IjIwMjMwODExMTE1MTMxIiwicHJvdG9jb2xfbmFtZSI6InRvdWNoZW5leCIsInV1aWQiOiI4YmNjMWJkN2ZjYmQ0MWRiODMyMjBjZTc3YjBhNzI3OCIsImxpY2Vuc2UiOiJwOFdzU3NuZ1NCZnVKdm9ZN05HZW0yZmxmQnVCVnp3UCtcL1F6cVdFMUR2Z2VsczgyNXFVcThXeThyaCtsU3p3MjNSdUwwMGU1NHUzazI2a1ZwTnVzZEE9PSQyQ0Q5K0lncDRvQ3hnZjFYQVl2T2hqNVVtdVFudDNGNm5RZVQ0Zk82b05aOWdXMGYrdHcrWUZYVVl3NnVpQk1Va1h1SUdjcXBLMzR6Q3V2S3ViXC8reGR1c1NQc0hOdFg5OHBBTFFnT3BwVXNLOENTbFlEcDRUN01saVlJZlNacHJpUXY1Szl3VEVzRlBKaXpnWWo0c3NodW9pdlhBZlwvOExYdjVSQnpVT2FIRDNkR2E1VmJlZ0ZPbjBsVWFwWUpOTGdYa0xkYUFZbE5xRE9GQjhFcWV4WWdpMlhoMlY4T0FaOTYxcksyQ0lCcnN2UDB2ZFBmSm41dTQ3MVoyQjZiYU9IQ3lhKzdvYWZyQ1pqR3NrcGJpSWhyaFpObEVNeG1qT1NrZ1F5OUthVVwvdWtKT2NEc0tRUE9KTGFTSzIycjB1R3pNbCtOXC9xVkpHNU02cm5PRmQzSE1RPT0ifQ==');
+        })
+
+     
+
+       function test(licStr){
+            var ws = new WebSocket(`wss://127.0.0.1:34581/${Math.floor(Math.random()*1000000)}/touchenex/Call`);
+            ws.onopen = function(){
+                var data = {
+                    init: 'get_versions',
+                    lic:licStr,
+                    origin: '*',                    
+                }
+                ws.send(JSON.stringify(data));
+            };
+            ws.onmessage = function(event){
+                console.log(event.data)
+                let result  = JSON.parse(event.data);
+                if(result.expire === ''){
+                    alert('올바른 라이선스가 아니거나, 정식라이선스 입니다');
+                }else{
+                    // 초기화 테스트 값 
+                    initValue();
+
+                    let expireDate = result.expire.slice(2, 8);
+                    let year = expireDate.slice(0, 2);
+                    let month = expireDate.slice(2, 4);
+                    let day = expireDate.slice(4, 6);
+                    console.log(year, month, day);
+                    
+             
+
+                    // html로 부터 값을 추출 
+                    let customer = document.getElementById('customer').value;
+                    let issuer = document.getElementById('issuer').value;
+                    let license = document.getElementById('license').value;
+
+                    // 서버에 보낼 데이터 양식 
+                    let data ={
+                        customer,
+                        issuer,
+                        license,
+                        date:{
+                            year,month,day
+                        }
+                    }
+                    console.log(data);
+                    addFunc(data);
+                    this.close();
+                }
+            };
+            ws.onerror = function(){
+                alert('websocket error!')
+            }
+            ws.onclose = function(){
+                console.log('websocket is close');
+            }
+           
+       }
+       function initValue(){
+            let customer = document.getElementById('customer');
+            let issuer = document.getElementById('issuer');
+            let license = document.getElementById('license');
+            if(customer.value === '' || issuer.value === '' || license.value === ''){
+                customer.value = '신한은행';
+                issuer.value = '임바울'
+                license.value = 'eyJ2ZXJzaW9uIjoiMi4wIiwiaXNzdWVfZGF0ZSI6IjIwMjMwODExMTE1MTMxIiwicHJvdG9jb2xfbmFtZSI6InRvdWNoZW5leCIsInV1aWQiOiI4YmNjMWJkN2ZjYmQ0MWRiODMyMjBjZTc3YjBhNzI3OCIsImxpY2Vuc2UiOiJwOFdzU3NuZ1NCZnVKdm9ZN05HZW0yZmxmQnVCVnp3UCtcL1F6cVdFMUR2Z2VsczgyNXFVcThXeThyaCtsU3p3MjNSdUwwMGU1NHUzazI2a1ZwTnVzZEE9PSQyQ0Q5K0lncDRvQ3hnZjFYQVl2T2hqNVVtdVFudDNGNm5RZVQ0Zk82b05aOWdXMGYrdHcrWUZYVVl3NnVpQk1Va1h1SUdjcXBLMzR6Q3V2S3ViXC8reGR1c1NQc0hOdFg5OHBBTFFnT3BwVXNLOENTbFlEcDRUN01saVlJZlNacHJpUXY1Szl3VEVzRlBKaXpnWWo0c3NodW9pdlhBZlwvOExYdjVSQnpVT2FIRDNkR2E1VmJlZ0ZPbjBsVWFwWUpOTGdYa0xkYUFZbE5xRE9GQjhFcWV4WWdpMlhoMlY4T0FaOTYxcksyQ0lCcnN2UDB2ZFBmSm41dTQ3MVoyQjZiYU9IQ3lhKzdvYWZyQ1pqR3NrcGJpSWhyaFpObEVNeG1qT1NrZ1F5OUthVVwvdWtKT2NEc0tRUE9KTGFTSzIycjB1R3pNbCtOXC9xVkpHNU02cm5PRmQzSE1RPT0ifQ==';
+            }
+       }
+       function addFunc(data){
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'http://localhost:8080/add');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.send(JSON.stringify(data));
+       }
+    </script>
+    <style>
+        .detailTbltd{
+            width: 100%;
+            padding: 0;
+            border-spacing: 0px;
+            border: 0;
+            border-collapse: collapse;
+            margin: 0px auto 0px auto;
+            table-layout: fixed;
+        }
+       .detailTbltd td{
+        border-collapse: collapse;
+        padding-left: 10px;
+        text-align: left;
+        font-size: 12px;
+        height: 26px;
+         word-wrap: break-word;
+       }
+    </style>
+</body>
+</html>
